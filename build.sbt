@@ -8,6 +8,7 @@ javaOptions += "-Duser.timezone=UTC"
 javaOptions in run += "-Duser.timezone=UTC"
 enablePlugins(JavaAppPackaging)
 enablePlugins(RpmPlugin)
+enablePlugins(GitVersioning)
 rpmVendor := "actionfps"
 rpmBrpJavaRepackJars := true
 rpmLicense := Some("BSD")
