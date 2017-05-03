@@ -9,7 +9,7 @@ import scala.util.matching.Regex
   */
 package object syslog {
 
-  val extractServerNameStatus: Regex = """(.*): Status at [^ ]+ [^ ]+: \d+.*""".r
+  val extractServerNameStatus: Regex = """(.*):( [^ ]+ [^ ]+ \d\d:\d\d:\d\d|) Status at [^ ]+ [^ ]+: \d+.*""".r
 
   val matcher2: Regex = """(.*): \[\d+\.\d+\.\d+\.\d+\] [^ ]+ (sprayed|busted|gibbed|punctured) [^ ]+""".r
 

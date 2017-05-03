@@ -28,7 +28,7 @@ case class EventProcessor(registeredServers: Set[String]) {
           Option(this -> getRealMessage(fm, foundServer, newDate))
         case None =>
           fullMessage match {
-            case extractServerNameStatus(serverId) =>
+            case extractServerNameStatus(serverId, _) =>
               copy(registeredServers = registeredServers + serverId)
                 .process(fm, newDate)
             case matcher2(serverId, _) =>
