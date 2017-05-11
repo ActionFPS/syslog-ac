@@ -14,7 +14,7 @@ package object syslog {
   val matcher2: Regex = """(.*): \[\d+\.\d+\.\d+\.\d+\] [^ ]+ (sprayed|busted|gibbed|punctured) [^ ]+""".r
 
   case class AcServerMessage(date: DateTime, serverName: String, message: String) {
-    def toLine = s"""Date: $date, Server: $serverName, Payload: $message\n"""
+    def toLine = s"$date\t$serverName\t$message"
   }
 
 }
