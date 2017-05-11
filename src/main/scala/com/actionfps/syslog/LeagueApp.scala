@@ -26,7 +26,7 @@ object LeagueApp extends App with StrictLogging {
         case Some((nep, rm@AcServerMessage(date, serverName, payload))) =>
           logger.debug(s"Accepted message with new $nep: ${rm}")
           state = nep
-          System.out.println(rm.toLine.getBytes)
+          System.out.println(rm.toLine)
       }
     }
   }
