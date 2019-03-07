@@ -1,4 +1,4 @@
-scalaVersion := "2.12.1"
+scalaVersion := "2.12.8"
 scalacOptions := Seq(
   "-unchecked", "-deprecation", "-encoding", "utf8", "-feature",
   "-language:existentials", "-language:implicitConversions",
