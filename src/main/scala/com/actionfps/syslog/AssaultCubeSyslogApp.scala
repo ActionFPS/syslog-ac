@@ -12,11 +12,20 @@ import scala.concurrent.ExecutionContext
 
 object AssaultCubeSyslogApp extends App with StrictLogging {
   private implicit val contextShiftIO: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-  private val bindUri = new URI(args(0))
+
+  private val bindUri = new URI(
+    System.getenv("BIND_URI")
+      .ensuring(_ != null, "Set 'BIND_URI'")
+  )
+    .ensuring(_.getScheme == "udp", "Only UDP supported now")
+  private val targetPath = Paths.get(
+    System.getenv("APPEND_PATH")
+      .ensuring(_ != null, "Set 'APPEND_PATH'")
+  ).ensuring(path =>
+    Files.isWritable(path.getParent), s"Make sure we can write to the path")
+
   private implicit val grp: AsynchronousSocketGroup = AsynchronousSocketGroup()
-  require(bindUri.getScheme == "udp", "Only UDP supported now")
-  private val targetPath = Paths.get(args(1))
-  require(Files.isWritable(targetPath.getParent), s"Make sure we can write to $targetPath")
+
   private val socketResource = Socket[IO](
     address = new InetSocketAddress(bindUri.getHost, bindUri.getPort)
   )
