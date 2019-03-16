@@ -29,3 +29,4 @@ libraryDependencies += "co.fs2" %% "fs2-core" % "1.0.4"
 libraryDependencies += "co.fs2" %% "fs2-io" % "1.0.4"
 libraryDependencies += "co.fs2" %% "fs2-reactive-streams" % "1.0.4"
 libraryDependencies += "co.fs2" %% "fs2-experimental" % "1.0.4"
+libraryDependencies += "org.pcap4j" % "pcap4j-packetfactory-static" % "2.0.0-alpha.2" % Test

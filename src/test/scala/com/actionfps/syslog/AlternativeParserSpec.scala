@@ -1,11 +1,6 @@
 package com.actionfps.syslog
 
-import java.net.InetAddress
-
 import javax.xml.bind.DatatypeConverter
-import org.pcap4j.core.Pcaps
-import org.productivity.java.syslog4j.server.SyslogServerEventIF
-import org.productivity.java.syslog4j.server.impl.event.SyslogServerEvent
 import org.scalatest.FreeSpec
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
@@ -16,15 +11,6 @@ final class AlternativeParserSpec extends FreeSpec {
   private val bytes = javax.xml.bind.DatatypeConverter.parseHexBinary(inputData)
   private val dateStr = "Mar 16 15:19:23"
   private val msg = """aura AssaultCube[local#1999]: demo written to file "demos/20190316_1419_local_ac_gothic_8min_DM.dmo" (162438 bytes)"""
-
-  "It parses with syslog4j" in {
-    val event: SyslogServerEventIF = new SyslogServerEvent(bytes, bytes.length, InetAddress.getLocalHost)
-    event.getFacility shouldBe 176
-    //    event.getHost shouldBe "xyz"
-    event.getLevel shouldBe 6
-    //    event.getDate shouldBe new java.util.Date("Sat Mar 16 15:19:23 CET 2019")
-    event.getMessage shouldBe msg
-  }
 
   "It parses with Scala directly" in {
     SyslogMessage.unapply(bytes).value.facility shouldBe 176
@@ -39,12 +25,6 @@ final class AlternativeParserSpec extends FreeSpec {
     val xmsg = "bluf assaultcube_server.real[9935]: Mar 15 09:26:54 Team RVSF:  4 players,   14 frags,    2 flags"
     val facility = 24
     val level = 6
-    "Parses syslog4j" in {
-      val evt = new SyslogServerEvent(inputBytes, inputBytes.length, InetAddress.getLocalHost)
-      evt.getFacility shouldBe facility
-      evt.getLevel shouldBe level
-      evt.getMessage shouldBe xmsg
-    }
     "Parses Scala" in {
       val msg = SyslogMessage.unapply(inputBytes).value
 
@@ -53,29 +33,6 @@ final class AlternativeParserSpec extends FreeSpec {
       msg.message shouldBe xmsg
       msg.dateStr shouldBe "Mar 15 09:26:54"
     }
-  }
-
-  "It parses messages all the same way" in {
-    val pcaps = Pcaps.openOffline("""syslog-3.pcap""")
-    try Iterator.continually(pcaps.getNextPacket).takeWhile(_ != null)
-      .zipWithIndex
-      .filterNot(_._2 == 37445)
-      .foreach { case (packet, idx) =>
-        val byteList = packet.getRawData.drop(42).toList
-        val event: SyslogServerEventIF = new SyslogServerEvent(byteList.toArray, byteList.length, InetAddress.getLocalHost)
-        try {
-          val foundLog = SyslogMessage.unapply(byteList.toArray).value
-          foundLog.facility shouldEqual event.getFacility
-          foundLog.level shouldEqual event.getLevel
-          foundLog.message shouldEqual event.getMessage
-        }
-        catch {
-          case e: Exception =>
-            info(s"Here, message is: ${event.getMessage}")
-            fail(s"Failed here: index ${idx}; ${DatatypeConverter.printHexBinary(byteList.toArray)}")
-        }
-      } finally pcaps.close()
-
   }
 
 }

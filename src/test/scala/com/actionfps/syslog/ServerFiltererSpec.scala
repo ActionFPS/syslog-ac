@@ -1,11 +1,6 @@
 package com.actionfps.syslog
 
 import org.scalatest.FreeSpec
-
-object ServerFiltererSpec {
-
-}
-
 import org.scalatest.Matchers._
 import org.scalatest.OptionValues._
 
