@@ -1,0 +1,26 @@
+addons:
+  apt:
+    packages:
+    - rpm
+cache:
+  directories:
+  - "$HOME/.ivy2/cache"
+  - "$HOME/.sbt/boot/"
+if: tag IS blank
+jdk:
+- oraclejdk11
+script:
+- git config --local user.name "travis"
+- git config --local user.email "travis+fake@actionfps.com"
+- sbt clean test:compile test rpm:packageBin
+deploy:
+  provider: packagecloud
+  username: actionfps
+  token:
+    secure: Dh8Jz/0Z1vFfKM23yGun+Mley9H5qUUZJhitgQBgc7EHtjEnOsuT0jjqbFhRUI6i/8QMfAlXtR62jDbko65lBSjQ9/DWpN4EX+Xdsfa7blKIJsDmjyYGiOKXFXZtAw80VyP9bkKhDvR+wCqye9s4nwy30eLLgDdAVXrp4Fjww/Tq+DatqaiE4z47VyQCZ2Y/rvXExyH2SdyxT3dosqdv3JO3h24Ggs1IW//t225q7OUUM4m8/Vm6Tbkejw/ZHWW/SMF6k+yqRjSmu2jRh8VbWL3xPw9nzs1ne6YQng4uZZqGaNkNWjAJ2SEtkqyTxNhF9gfKlH0PnuoLerF4K05oqz9QxwTzYObkEBwyQfJPsu47b8WBCK4sRYNBuwzwUNmu8lR+q7GEdsnQONl2Ucsi7A2Tp8XbUqwpH8wNZR2iwHGKCs2eFekVnf6CxJdMMi85IiqFHeGp1cj2FaNpYuXK1Ru2LHT+EmEBJD40E4d6RXUz86LKFia4ePc7Cfe4tAqV/zvNDW98rL83EBjbm2hi4wBSVLNzNMDgn4y7Ns0DiVJoFedAdBl6VwDKlP2IAJB0GLC1/qF+r3ldLGcJL3I4P6Q+Pc0EEFS5reBulV4mBNEg59JZVPJKOX0nYTlOKh4b+kNADEuehLspC6VbbyEGoX/hVm8PNVsYmoOPJQLJd+M=
+  on:
+    tags: true
+  repository: ActionFPS
+  dist: el/7
+  local_dir: "/home/travis/build/ScalaWilliam/syslog-ac/target/rpm/RPMS/noarch/"
+  skip_cleanup: true
