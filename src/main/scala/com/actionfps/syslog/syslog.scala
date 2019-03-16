@@ -1,11 +1,9 @@
 package com.actionfps
 
 import java.time.Instant
-
 import cats.effect.IO
 import cats.effect.concurrent.Ref
 import fs2.io.udp.Packet
-
 import scala.util.matching.Regex
 
 /**
@@ -13,7 +11,7 @@ import scala.util.matching.Regex
   */
 package object syslog {
 
-  val matchServerStatus: Regex = """([^ ]+ [^ ]+ \d\d:\d\d:\d\d|) Status at [^ ]+ [^ ]+: \d+.*""".r
+  val matchServerStatus: Regex = """Status at [^ ]+ [^ ]+: \d+.*""".r
 
   val matchPlayerActivity: Regex = """\[\d+\.\d+\.\d+\.\d+\] [^ ]+ (sprayed|busted|gibbed|punctured) [^ ]+""".r
 
@@ -59,20 +57,6 @@ package object syslog {
     val empty = ServerFilterState(validServers = Set.empty)
   }
 
-  def createFilterer: IO[AcServerMessage => IO[Boolean]] = {
-    for {
-      ref <- Ref.of[IO, ServerFilterState](ServerFilterState.empty)
-    } yield (acServerMessage: AcServerMessage) => ref.get.flatMap { sfs =>
-      if (sfs.isValid(acServerMessage.serverMessage)) IO.pure(true)
-      else {
-        sfs.includePotentiallyValid(acServerMessage.serverMessage) match {
-          case None => IO.pure(false)
-          case Some(newState) => ref.set(newState).map(_ => true)
-        }
-      }
-    }
-  }
-
   import fs2._
 
   def packetsToAcServerMessages: Pipe[IO, Packet, AcServerMessage] = {
@@ -80,17 +64,30 @@ package object syslog {
       for {
         syslogMessage <- SyslogMessage.unapply(packet.bytes.toArray)
         serverMessage <- ServerMessage.unapply(syslogMessage.message)
-        newServerId = packet.remote.getAddress.getHostAddress + " " + serverMessage.serverId
+        ipAddress <- packet.remote.toString.split(":").headOption
+        newServerId = s"${ipAddress} ${serverMessage.serverId}"
       } yield AcServerMessage(instant, serverMessage.copy(serverId = newServerId))
     }.unNone
   }
 
   def filterDefiniteAcServerMessages: Pipe[IO, AcServerMessage, AcServerMessage] = {
     q =>
-      fs2.Stream.eval(createFilterer).flatMap { filterer =>
-        q.evalMap(acm => filterer(acm).map(send => if (send) Some(acm) else None))
-          .unNone
-      }
+      fs2.Stream.eval(Ref.of[IO, ServerFilterState](ServerFilterState.empty))
+        .flatMap { ref =>
+          q.evalMap { acMessage =>
+            ref.get.flatMap { sfs =>
+              if (sfs.isValid(acMessage.serverMessage)) IO.pure(Some(acMessage))
+              else {
+                sfs.includePotentiallyValid(acMessage.serverMessage) match {
+                  case Some(newState) =>
+                    ref.set(newState).map(_ => Some(acMessage))
+                  case None =>
+                    IO.pure(None)
+                }
+              }
+            }
+          }
+        }.unNone
   }
 
 }

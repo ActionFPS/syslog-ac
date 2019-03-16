@@ -4,11 +4,12 @@ scalacOptions := Seq(
   "-language:existentials", "-language:implicitConversions",
   "-language:reflectiveCalls", "-target:jvm-1.8"
 )
-javaOptions += "-Duser.timezone=UTC"
 javacOptions in compile in ThisBuild ++= Seq("--release",
   "11",
   "-target",
   "11")
+
+name := "actionfps-syslog"
 
 enablePlugins(JavaAppPackaging)
 enablePlugins(RpmPlugin)

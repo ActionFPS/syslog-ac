@@ -11,10 +11,11 @@ import org.scalatest.{FreeSpec, Matchers}
 
 object CombinedPcapReaderSpec {
 
-  def getPacket(pcapHandle: PcapHandle): IO[Option[Packet]] = {
+  def getPacket(pcapHandle: PcapHandle): IO[Option[Option[Packet]]] = {
     IO.delay {
       for {
         packet <- Option(pcapHandle.getNextPacket)
+      } yield for {
         ipv4Packet <- Option(packet.get(classOf[IpV4Packet]))
         udpPacket <- Option(packet.get(classOf[UdpPacket]))
       } yield Packet(
@@ -30,18 +31,42 @@ object CombinedPcapReaderSpec {
   def pcapUdpReader(openPcap: => PcapHandle): Stream[IO, Packet] = {
     fs2.Stream
       .resource(Resource.make(IO.delay(openPcap))(pcaps => IO.delay(pcaps.close())))
-      .evalMap(getPacket)
+      .flatMap { resource =>
+        fs2.Stream.repeatEval(getPacket(resource))
+      }
       .unNoneTerminate
+      .unNone
   }
 }
 
 class CombinedPcapReaderSpec extends FreeSpec with Matchers {
-  "It works" in {
-    CombinedPcapReaderSpec.pcapUdpReader(Pcaps.openOffline("syslog-3.pcap"))
-      .take(10)
-      .evalMap(p => IO.delay(println(p)))
+
+  private val readPackets = CombinedPcapReaderSpec.pcapUdpReader(
+    Pcaps.openOffline("src/test/scala/resources/syslog-three.pcap")
+  )
+
+  "It reads 3 packets as expected" in {
+    readPackets
       .compile
-      .drain
-      .unsafeRunSync()
+      .toList
+      .unsafeRunSync() should have size 3
   }
+
+  "It reads 3 AC messages as expected" in {
+    readPackets
+      .through(packetsToAcServerMessages)
+      .compile
+      .toList
+      .unsafeRunSync() should have size 3
+  }
+
+  "It reads 2 AC messages as filtered" in {
+    readPackets
+      .through(packetsToAcServerMessages)
+      .through(filterDefiniteAcServerMessages)
+      .compile
+      .toList
+      .unsafeRunSync() should have size 2
+  }
+
 }
