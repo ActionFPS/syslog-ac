@@ -10,8 +10,6 @@ if: tag IS blank
 jdk:
 - oraclejdk11
 script:
-- git config --local user.name "travis"
-- git config --local user.email "travis+fake@actionfps.com"
 - sbt clean test:compile test rpm:packageBin
 deploy:
   provider: packagecloud
