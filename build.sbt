@@ -34,5 +34,5 @@ libraryDependencies += "org.pcap4j" % "pcap4j-packetfactory-static" % "2.0.0-alp
 
 enablePlugins(SystemdPlugin)
 
-publishArtifact in(Compile, packageDoc) := false,
-publishArtifact in packageDoc := false,
+publishArtifact in(Compile, packageDoc) := false
+publishArtifact in packageDoc := false
