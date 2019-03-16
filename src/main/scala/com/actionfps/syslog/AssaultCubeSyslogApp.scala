@@ -39,7 +39,7 @@ object AssaultCubeSyslogApp extends App with StrictLogging {
   fs2.Stream
     .resource(socketResource)
     .flatMap(_.reads())
-    .through(packetsToAcServerMessages)
+    .through(packetsToAcServerMessages(currentTime))
     .through(filterDefiniteAcServerMessages)
     .map(_.toLine)
     .evalMap(appendLine(targetPath))

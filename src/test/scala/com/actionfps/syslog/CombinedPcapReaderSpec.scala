@@ -1,6 +1,7 @@
 package com.actionfps.syslog
 
 import java.net.InetSocketAddress
+import java.time.Instant
 
 import cats.effect.{IO, Resource}
 import fs2._
@@ -54,7 +55,7 @@ class CombinedPcapReaderSpec extends FreeSpec with Matchers {
 
   "It reads 3 AC messages as expected" in {
     readPackets
-      .through(packetsToAcServerMessages)
+      .through(packetsToAcServerMessages(currentTime))
       .compile
       .toList
       .unsafeRunSync() should have size 3
@@ -62,11 +63,24 @@ class CombinedPcapReaderSpec extends FreeSpec with Matchers {
 
   "It reads 2 AC messages as filtered" in {
     readPackets
-      .through(packetsToAcServerMessages)
+      .through(packetsToAcServerMessages(currentTime))
       .through(filterDefiniteAcServerMessages)
       .compile
       .toList
       .unsafeRunSync() should have size 2
+  }
+
+  "It renders the message as expected" in {
+    import org.scalatest.OptionValues._
+    readPackets
+      .through(packetsToAcServerMessages(IO.pure(Instant.parse("2019-03-16T20:55:53.250304800Z"))))
+      .through(filterDefiniteAcServerMessages)
+      .map(_.toLine)
+      .compile
+      .last
+      .unsafeRunSync()
+      .value shouldBe
+      """2019-03-16T20:55:53.250304800Z       157.230.139.74 bluf AssaultCube[gaulpublic]     Team  CLA:  2 players,   24 frags,    1 flags"""
   }
 
 }

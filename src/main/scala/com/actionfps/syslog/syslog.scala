@@ -59,12 +59,14 @@ package object syslog {
 
   import fs2._
 
-  def packetsToAcServerMessages: Pipe[IO, Packet, AcServerMessage] = {
-    _.evalMap(packet => IO.delay(Instant.now() -> packet)).map { case (instant, packet) =>
+  val currentTime = IO.delay(Instant.now())
+
+  def packetsToAcServerMessages(currentTime: IO[Instant]): Pipe[IO, Packet, AcServerMessage] = {
+    _.evalMap(packet => currentTime.map(t => t -> packet)).map { case (instant, packet) =>
       for {
         syslogMessage <- SyslogMessage.unapply(packet.bytes.toArray)
         serverMessage <- ServerMessage.unapply(syslogMessage.message)
-        ipAddress <- packet.remote.toString.split(":").headOption
+        ipAddress <- packet.remote.toString.split(":").headOption.map(_.replaceAllLiterally("/", ""))
         newServerId = s"${ipAddress} ${serverMessage.serverId}"
       } yield AcServerMessage(instant, serverMessage.copy(serverId = newServerId))
     }.unNone
