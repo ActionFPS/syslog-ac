@@ -56,7 +56,6 @@ final class AlternativeParserSpec extends FreeSpec {
   }
 
   "It parses messages all the same way" in {
-    var state = EventProcessor.empty
     val pcaps = Pcaps.openOffline("""syslog-3.pcap""")
     try Iterator.continually(pcaps.getNextPacket).takeWhile(_ != null)
       .zipWithIndex

@@ -1,46 +1,26 @@
 package com.actionfps.syslog
 
-import java.net.URI
-
+import java.net.{InetSocketAddress, URI}
+import cats.effect.{ContextShift, IO}
 import com.typesafe.scalalogging.StrictLogging
-import org.productivity.java.syslog4j.server.{SyslogServer, SyslogServerEventHandlerIF, SyslogServerEventIF, SyslogServerIF}
-
-import scala.annotation.tailrec
-import scala.util.control.NonFatal
+import fs2._
+import fs2.io.udp.{AsynchronousSocketGroup, Socket}
+import scala.concurrent.ExecutionContext
 
 object LeagueApp extends App with StrictLogging {
-
-  val bindUri = new URI(args(0))
-
-  val syslogserver = SyslogServer.getInstance(bindUri.getScheme)
-  syslogserver.getConfig.setPort(bindUri.getPort)
-  syslogserver.getConfig.setHost(bindUri.getHost)
-  var state = EventProcessor.empty
-  val handler = new SyslogServerEventHandlerIF {
-    override def event(syslogServer: SyslogServerIF, event: SyslogServerEventIF): Unit = {
-      val scalaEvent = SyslogServerEventIFScala(event)
-      logger.debug("Received event from syslog server {}", scalaEvent)
-      state.process(scalaEvent, EventProcessor.currentTime) match {
-        case None =>
-          logger.debug(s"Ignored message: ${scalaEvent}")
-        case Some((nep, rm@AcServerMessage(date, serverName, payload))) =>
-          logger.debug(s"Accepted message with new $nep: ${rm}")
-          state = nep
-          System.out.println(rm.toLine)
-      }
-    }
-  }
-  syslogserver.getConfig.addEventHandler(handler)
-
-  @tailrec
-  def run(): Unit = {
-    try syslogserver.run()
-    catch {
-      case NonFatal(e) =>
-        logger.error(s"Failed: ${e}", e)
-    }
-    run()
-  }
-
-  run()
+  private implicit val contextShiftIO: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+  private val bindUri = new URI(args(0))
+  private implicit val grp: AsynchronousSocketGroup = AsynchronousSocketGroup()
+  require(bindUri.getScheme == "udp", "Only UDP supported now")
+  fs2.Stream.resource {
+    Socket[IO](
+      address = new InetSocketAddress(bindUri.getHost, bindUri.getPort)
+    )
+  }.flatMap(_.reads())
+    .through(packetsToAcServerMessages)
+    .through(filterDefiniteAcServerMessages)
+    .evalMap(o => IO.delay(println(o)))
+    .compile
+    .drain
+    .unsafeRunSync()
 }
