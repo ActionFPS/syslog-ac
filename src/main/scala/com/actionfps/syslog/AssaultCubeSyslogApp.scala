@@ -42,6 +42,7 @@ object AssaultCubeSyslogApp extends App with StrictLogging {
     .through(packetsToAcServerMessages(currentTime))
     .through(filterDefiniteAcServerMessages)
     .map(_.toLine)
+    .filter(line => !line.contains('\n'))
     .evalMap(appendLine(targetPath))
     .compile
     .drain
