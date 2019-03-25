@@ -12,6 +12,7 @@ import scala.util.matching.Regex
 package object syslog {
 
   val matchServerStart: Regex = """logging local AssaultCube server.*""".r
+  val gameStart: Regex = """Game start: .*""".r
 
   val matchServerStatus: Regex = """Status at [^ ]+ [^ ]+: \d+.*""".r
 
@@ -24,6 +25,7 @@ package object syslog {
   def checkMessageMatched(serverMessage: ServerMessage): Boolean = {
     matchServerStatus.unapplySeq(serverMessage.serverMessage)
       .orElse(matchPlayerActivity.unapplySeq(serverMessage.serverMessage))
+      .orElse(gameStart.unapplySeq(serverMessage.serverMessage))
       .orElse(matchServerStart.unapplySeq(serverMessage.serverMessage))
       .isDefined
   }
