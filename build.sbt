@@ -1,38 +1,35 @@
-scalaVersion := "2.12.8"
+scalaVersion := "2.13.5"
 scalacOptions := Seq(
-  "-unchecked", "-deprecation", "-encoding", "utf8", "-feature",
-  "-language:existentials", "-language:implicitConversions",
-  "-language:reflectiveCalls", "-target:jvm-1.8"
+  "-unchecked", "-deprecation", "-encoding", "utf8"
 )
-javacOptions in compile in ThisBuild ++= Seq("--release",
-  "11",
-  "-target",
-  "11")
-
 name := "actionfps-syslog"
 
 enablePlugins(JavaAppPackaging)
 enablePlugins(RpmPlugin)
 enablePlugins(GitVersioning)
+enablePlugins(SystemdPlugin)
+
 rpmVendor := "actionfps"
 rpmBrpJavaRepackJars := true
 rpmLicense := Some("BSD")
+
 libraryDependencies ++= Seq(
-  "ch.qos.logback" % "logback-classic" % "1.1.8",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
-  "org.pcap4j" % "pcap4j-sample" % "2.0.0-alpha.2" % Test
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+  "org.pcap4j" % "pcap4j-sample" % "2.0.0-alpha.6" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.6" % Test,
+  "javax.xml.bind" % "jaxb-api" % "2.3.1",
+  "co.fs2" %% "fs2-core" % fs2Version,
+  "co.fs2" %% "fs2-io" % fs2Version,
+  "co.fs2" %% "fs2-reactive-streams" % fs2Version,
+  "co.fs2" %% "fs2-experimental" % fs2Version,
+  "org.pcap4j" % "pcap4j-packetfactory-static" % "2.0.0-alpha.6" % Test
 )
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+
 bashScriptExtraDefines += """addJava "-Dlogback.statusListenerClass=ch.qos.logback.core.status.NopStatusListener""""
 git.useGitDescribe := true
-libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1"
-libraryDependencies += "co.fs2" %% "fs2-core" % "1.0.4"
-libraryDependencies += "co.fs2" %% "fs2-io" % "1.0.4"
-libraryDependencies += "co.fs2" %% "fs2-reactive-streams" % "1.0.4"
-libraryDependencies += "co.fs2" %% "fs2-experimental" % "1.0.4"
-libraryDependencies += "org.pcap4j" % "pcap4j-packetfactory-static" % "2.0.0-alpha.2" % Test
 
-enablePlugins(SystemdPlugin)
+Compile / packageDoc / publishArtifact := false
+packageDoc / publishArtifact := false
 
-publishArtifact in(Compile, packageDoc) := false
-publishArtifact in packageDoc := false
+def fs2Version = "2.5.3"

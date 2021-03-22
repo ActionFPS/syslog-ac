@@ -2,7 +2,8 @@
 
 Syslog service for ActionFPS/AssaultCube game servers.
 
-Migrated from <a href="https://github.com/ScalaWilliam/ActionFPS">ActionFPS</a> as this component is orthogonal to the rest for the time being.
+Migrated from <a href="https://github.com/ScalaWilliam/ActionFPS">ActionFPS</a> as this component is orthogonal to the
+rest for the time being.
 
 Works in both UDP and TCP modes. Here's some rsyslog.d config:
 
@@ -18,6 +19,8 @@ Works in both UDP and TCP modes. Here's some rsyslog.d config:
 
 ```
 $ git fetch --tags
-$ sbt rpm:packageBin # CentOS
-$ sbt 'show dist' # Generate .zip
+$ sbt test rpm:packageBin # CentOS
 ```
+
+For pcap, check the set-up instructions. 
+https://github.com/kaitoy/pcap4j#winpcap-or-npcap

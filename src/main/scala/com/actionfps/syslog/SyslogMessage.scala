@@ -1,7 +1,11 @@
 package com.actionfps.syslog
 
-
-final case class SyslogMessage(facility: Int, level: Int, message: String, dateStr: String)
+final case class SyslogMessage(
+    facility: Int,
+    level: Int,
+    message: String,
+    dateStr: String
+)
 
 object SyslogMessage {
   private def parseIntSafe(str: String): Option[Int] = {
@@ -23,9 +27,11 @@ object SyslogMessage {
       if message.length >= 16
       ' ' <- message.lift(3)
       ' ' <- message.lift(6)
-    } yield SyslogMessage(facility = facility,
+    } yield SyslogMessage(
+      facility = facility,
       message = message.substring(16),
       dateStr = message.substring(0, 15),
-      level = priority - facility)
+      level = priority - facility
+    )
   }
 }
