@@ -98,5 +98,4 @@ final class CombinedPcapReaderSpec extends AnyFreeSpec {
         )
     )
   }
-
 }

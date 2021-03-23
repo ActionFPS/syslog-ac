@@ -26,13 +26,14 @@ object StreamProcessors {
       acMessage <- acServerMessagesStream
       serverFilterState <- fs2.Stream.eval(ref.get)
       result <-
-        if (serverFilterState.isValid(acMessage.serverMessage))
+        if serverFilterState.isValid(acMessage.serverMessage) then
           fs2.Stream.apply(acMessage)
         else
           fs2.Stream.emits(serverFilterState.includePotentiallyValid(acMessage.serverMessage).toList)
             .evalMap(newState => ref.set(newState))
             .as(acMessage)
-    } yield result
+    }
+      yield result
   }
-
 }
+

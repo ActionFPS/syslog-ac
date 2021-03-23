@@ -1,4 +1,4 @@
-scalaVersion := "2.13.5"
+scalaVersion := "3.0.0-RC1"
 scalacOptions := Seq(
   "-unchecked", "-deprecation", "-encoding", "utf8"
 )
@@ -15,7 +15,6 @@ rpmLicense := Some("BSD")
 
 libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "org.pcap4j" % "pcap4j-sample" % "2.0.0-alpha.6" % Test,
   "org.scalatest" %% "scalatest" % "3.2.6" % Test,
   "javax.xml.bind" % "jaxb-api" % "2.3.1",
@@ -33,3 +32,6 @@ Compile / packageDoc / publishArtifact := false
 packageDoc / publishArtifact := false
 
 def fs2Version = "2.5.3"
+
+scalacOptions ++= Seq("-source:3.0-migration",
+  "-rewrite", "-no-indent")

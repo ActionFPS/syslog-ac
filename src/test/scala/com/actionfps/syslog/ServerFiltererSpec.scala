@@ -59,5 +59,4 @@ final class ServerFiltererSpec extends AnyFreeSpec {
         .isValid(GoodAcServerMessage.serverMessage)
     )
   }
-
 }

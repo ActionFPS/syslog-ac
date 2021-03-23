@@ -1,7 +1,11 @@
 package com.actionfps.syslog
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
-import com.actionfps.syslog.StreamProcessors.{currentTime, filterDefiniteAcServerMessages, packetsToAcServerMessages}
+import com.actionfps.syslog.StreamProcessors.{
+  currentTime,
+  filterDefiniteAcServerMessages,
+  packetsToAcServerMessages
+}
 import fs2.io.udp.SocketGroup
 
 import java.net.{InetSocketAddress, URI}
@@ -26,18 +30,23 @@ object AssaultCubeSyslogApp extends IOApp {
       s"Make sure we can write to the path"
     )
 
-  private def appendLine(path: Path)(line: String): IO[Unit] = IO.delay {
-    Files.write(path, (line + "\n").getBytes(), StandardOpenOption.APPEND)
+  private def appendLine(path: Path)(line: String): IO[Unit] =
+    IO.delay {
+      Files.write(path, (line + "\n").getBytes(), StandardOpenOption.APPEND)
 
-    ()
-  }
+      ()
+    }
 
   override def run(args: List[String]): IO[ExitCode] = {
     for {
       blocker <- Blocker[IO]
       socketGroup <- SocketGroup[IO](blocker)
     } yield fs2.Stream
-      .resource(socketGroup.open[IO](new InetSocketAddress(bindUri.getHost, bindUri.getPort)))
+      .resource(
+        socketGroup.open[IO](
+          new InetSocketAddress(bindUri.getHost, bindUri.getPort)
+        )
+      )
       .flatMap(_.reads())
       .through(packetsToAcServerMessages(currentTime))
       .through(filterDefiniteAcServerMessages)
@@ -48,5 +57,4 @@ object AssaultCubeSyslogApp extends IOApp {
       .drain
   }.use(identity)
     .as(ExitCode.Error)
-
 }

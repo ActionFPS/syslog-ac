@@ -8,14 +8,13 @@ final case class SyslogMessage(
 )
 
 object SyslogMessage {
-  private def parseIntSafe(str: String): Option[Int] = {
+  private def parseIntSafe(str: String): Option[Int] =
     try Some(java.lang.Integer.parseInt(str))
     catch {
       case _: NumberFormatException => None
     }
-  }
 
-  def unapply(input: Array[Byte]): Option[SyslogMessage] = {
+  def unapply(input: Array[Byte]): Option[SyslogMessage] =
     for {
       '<' <- input.headOption
       endPos = input.indexOf('>'.toByte)
@@ -33,5 +32,4 @@ object SyslogMessage {
       dateStr = message.substring(0, 15),
       level = priority - facility
     )
-  }
 }

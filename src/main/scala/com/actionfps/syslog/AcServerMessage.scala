@@ -10,6 +10,4 @@ final case class AcServerMessage(
     s"$instant\t${serverMessage.serverId}\t${serverMessage.serverMessage}"
 }
 
-object AcServerMessage {
-
-}
+object AcServerMessage {}
